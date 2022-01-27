@@ -33,3 +33,20 @@ setwd("~/Documents/GitHub/data_journalism_2022_spring")
 install.packages("tidyverse")
 library(tidyverse)
 ```
+## <dbl> means "number" for R
+-----
+## Sorting Data (Descending - Biggest to Smallest)
+
+To sort a certain dataset by descending order, use this (replace assets with appropriate ones, but use the commands)
+
+This first groups the data by county name, then counts the number of loans, then arranges them in descending order
+
+```{r}
+wv_ppp_loans %>%
+  group_by(project_county_name) %>%
+  summarise(
+    count_loans = n()
+  ) %>%
+  arrange(desc(count_loans))
+```
+
