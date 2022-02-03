@@ -182,7 +182,7 @@ The key to working with dates is that R needs to know that the column containing
 **Task** Run the following code to load the `ppp_maryland.csv` file, then use glimpse() to see the data type for `date_approved`. Note that we're using `read.csv`, not the tidyverse's `read_csv`:
 
 ```{r}
-# using read.csv
+# using read.csv <- this is "base R," before the tidyverse. It makes few assumptions, tries to be conservative regarding what it thinks things are
 maryland_ppp_sample <- read.csv('data/ppp_maryland.csv')
 glimpse(maryland_ppp_sample)
 ```
