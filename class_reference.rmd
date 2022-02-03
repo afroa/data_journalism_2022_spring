@@ -49,4 +49,148 @@ wv_ppp_loans %>%
   ) %>%
   arrange(desc(count_loans))
 ```
+----------------------------------
+## Saving something as a variable
+Take a look at the following code, which allows you to save a set of code as a variable (which then allows it to be viewed in the Data Viewer)
 
+```{r}
+wv_summary <- wv_ppp_loans %>%
+  summarise(
+    count_loans = n(),
+    total_loans_amount = sum(amount),
+    mean_loan_amount = mean(amount),
+    median_loan_amount = median(amount),
+    min_loan_amount = min(amount),
+    max_loan_amount = max(amount)
+  ) %>%
+  arrange(desc(max_loan_amount))
+```
+---------------------------------
+# A good way to introduce yourself to the contents of you data set:
+
+```{r}
+head(maryland_ppp)
+summary(maryland_ppp)
+colnames(maryland_ppp)
+glimpse(maryland_ppp)
+```
+
+"head":
+"summary:"
+"colnames:"
+"glimpse:"
+
+-------------------------
+### Mutate
+**Task** Run the following code to create a new column called `percent_payroll` based on a calculation using two existing columns. This allows you to add a new column (which in this example, we name "percent_payroll"), or change an existing column.
+
+```{r}
+maryland_ppp %>%
+  select(loan_number, amount, payroll_proceed) %>%
+  mutate(
+  percent_payroll = payroll_proceed/amount
+)
+```
+-------------------
+### SELECT: Better percentage calculation
+**Task** Run the following code to make our new column called `percent_payroll` show a percentage instead of a decimal. Doesn't make the rest of your data disappear, but it shows you specific data you want to see.
+
+```{r}
+# select a range of data, then make it a percentage
+maryland_ppp %>%
+  select(loan_number, amount, payroll_proceed) %>%
+  mutate(
+  percent_payroll = (payroll_proceed/amount)*100
+)
+```
+-------------------
+### ARRANGE: Mutate with ordering
+**Task** Run the following code to order by our new column. By adding the "%>% arrange(desc(percent_payroll))", we can arrange the percent_payroll data in DESCENDING ORDER
+
+```{r}
+# better ordering?
+maryland_ppp %>%
+  select(loan_number, amount, payroll_proceed) %>%
+  mutate(
+  percent_payroll = (payroll_proceed/amount)*100
+)  %>% arrange(desc(percent_payroll))
+```
+----------------
+### To organize data CONDITIONALLY, using "If/Else" and "Filter"
+One question you might have is whether the lenders servicing these loan applications are located in Maryland or outside. We can add a column using mutate and populate it based on the state of the lender.
+
+**Task** Run the following code to create a new column called `in_out` based on the values of `servicing_lender_state`. Add a description of what this code does to your reference notebook.
+
+```{r}
+# if/else example. This creates a "yes or no" answer, by creating new columns. This is good for a binary question, when an element of data is either one thing or another, and not a third (or fourth, fifth, etc.) thing
+maryland_with_in_out <- maryland_ppp %>%
+  mutate(
+    #create a new column "in_out", which uses the "if_else()" function to populate "in_out" if the value of "servicing_lender_state" is in Maryland. If it is, then the column will say "IN." If it's not in Maryland, then the new column will say "OUT"
+    in_out = if_else(
+        servicing_lender_state == 'MD', "IN", "OUT"
+      )
+  )
+```
+
+For a single variable, you can use FILTER:
+```{r}
+maryland_ppp %>%
+  # filter() filters data by a single column identifier
+  filter(servicing_lender_state == 'MD')
+
+
+```
+###Here is a more in-depth description of using filter:
+
+## Filters
+
+Filter is a tidyverse verb that uses criteria you supply to return a subset of the original data. Here's how it is structured:
+
+`filter(COLUMN_NAME OPERATOR CRITERIA)`
+
+Where COLUMN_NAME is any column name from your dataframe, OPERATOR is some comparison operator like == or > or < and CRITERIA is something to compare the values in COLUMN_NAME to.
+
+-----------------------
+### Task 9: Create a new column using case_when, for more multi-layered data grouping needs
+One common use of mutate is to create a new column and then populate it based on values in an existing column. For example, if we wanted to put the values in `jobs_retained` into broader categories in a new column called `jobs_retained_category` and we have multiple categories. We can use a function called `case_when` to make that easier.
+
+**Task** Run the following code to create a new column called `jobs_retained_category` based on the values of `jobs_retained`. Add a description of what this code does to your reference notebook.
+
+```{r}
+# case_when example. This creates separate "buckets" to help sort the data, decided by "case_when()." This allows you to put in a number of different scenarios: "when the number of jobs retained is less than 10, then put it in the "10_to_25" column." 
+
+#this also saves the following data as a new variable, called "maryland_jobs_categories"
+```{r}
+maryland_jobs_categories <- maryland_ppp %>%
+mutate(
+  jobs_retained_category = case_when(
+    jobs_retained < 10 ~ 'under_10',
+    jobs_retained >= 10 & jobs_retained < 25 ~ '10_to_25',
+    jobs_retained >= 25 & jobs_retained < 50 ~ '25_to_50',
+    jobs_retained >= 50 & jobs_retained < 100 ~ '50_to_100',
+    jobs_retained >= 100 & jobs_retained < 250 ~ '100_to_250',
+    jobs_retained >= 250 & jobs_retained < 500 ~ '250_to_500',
+    jobs_retained == 500 ~ '500'
+  )
+)
+```
+There's a lot going on here, so let's unpack it. It starts out as a typical mutate statement, but like our if_else example, case_when introduces some new things. Each line is basically a filter followed by `~` and then a value for the new column for records that match that filter. Here is [more detail](https://www.sharpsightlabs.com/blog/case-when-r/) on using `case_when`.
+  
+# FYI: The below code allows you to summarize the data above by grouping the data by job-retained ranges, and show how many entities retained jobs in those ranges.
+maryland_jobs_categories %>% group_by(jobs_retained_category) %>% summarise(count = n())
+
+
+----------
+
+### Task 16: Use mutate and lubridate to add a column called `Month` and see which month had the most applications.
+**Task** Run the following code to create a new column based on `date_approved`. 
+
+This code creates a new column, grouped by month, and sorts the date from highest to smallest (in terms of the number of loans)
+
+```{r}
+maryland_ppp %>%
+  mutate(Month = floor_date(date_approved, "month")) %>%
+  group_by(Month) %>%
+  summarise(total = n()) %>%
+  arrange(desc(total))
+```

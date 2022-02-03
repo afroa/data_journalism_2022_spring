@@ -122,7 +122,7 @@ Store it as a variable object called `wv_summary` so that you can examine it wit
 As far as newsworthy connections to this data, I'd be interested to know who received a loan of $165; did they ask for more, but only got that? How many people/businesses received sub-$500 loans? Also, I would like to know what percentage of the $2,600,771,578 was forgiven. Finally, I'd want to know how the total number of loans in WV compare to the other states. Is that a lot? Is it a little? 
 
 ```{r}
-wv_ppp_loans %>%
+wv_summary <- wv_ppp_loans %>%
   summarise(
     count_loans = n(),
     total_loans_amount = sum(amount),
