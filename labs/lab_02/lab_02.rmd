@@ -108,19 +108,15 @@ west_virginia_ppp %>%
 **Q5** How many loans went to West Virginia applicants that listed the maximum number of jobs retained (500)? Which one had the earliest approved date?
 **A5** 
 
+A total of 10 loans went to West Virginia applicants that listed 500 jobs retained.
 
 Earliest approval: CLARKSBURG CARDIOVASCULAR PLLC
 
 ```{r}
-wv_jobs_retained_count <- west_virginia_ppp %>%
-mutate(
-  jobs_retained_category = case_when(
-    jobs_retained <= 500 ~ '500_or_less',)) %>%
-group_by(jobs_retained_count) %>%
+  maxjobs_500_wv <- west_virginia_ppp %>%
+  filter(jobs_retained == 500) %>%
   summarise(
-    '500_or_less' = n(),
-    total_loans_amount = sum(amount)
+    jobs_retained = n()
   ) %>%
-  arrange(desc(ranged_amount))
-
+  arrange(desc(date_approved))
 ```
