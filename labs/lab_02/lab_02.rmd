@@ -83,15 +83,23 @@ wv_lenders <- west_virginia_ppp %>% filter(undisbursed_amount >0)%>%
     undisbursed_amount = n(),
   ) %>%
   arrange(desc(undisbursed_amount))
+```
 
-
+```{r}
+west_virginia_ppp %>%
+  filter(undisbursed_amount > 0) %>%
+  group_by(servicing_lender_name, servicing_lender_state) %>%
+  summarise(
+    total_loans = n()
+  ) %>%
+  arrange(desc(total_loans))
 ```
 
 **Q3** What are some potential reasons why a loan might not be paid out? What questions does that circumstance raise for you?
 **A3** 
 One possible reason is the fear of fraud. If a loan-seeker sets off alarm bells for a lender (as some have by registering for multiple loans linked to the same business address), it's possible a lender might not disburse a loan. As a reporter — and if this number results in something large enough to skew the data — I would want to know if certain lenders are more likely to deny loans than others, whether large loans are more likely to be flagged than small loans, and if there was a certain date range during which more fraud flags went up than others. 
 
-Another reason a loan might not be disbursed is if a loan-seeker did not meet the requirements under the PPP program, which changed throughout the life of the program and are more complex (and therefore easier to misinterpret). Consudering this document:
+Another reason a loan might not be disbursed is if a loan-seeker did not meet the requirements under the PPP program, which changed throughout the life of the program and are more complex (and therefore easier to misinterpret). Considering this document:
 
 https://www.federalregister.gov/documents/2021/03/08/2021-04795/business-loan-program-temporary-changes-paycheck-protection-program-revisions-to-loan-amount
 
@@ -135,3 +143,7 @@ mutate(
     jobs_retained == 500 ~ '500 jobs retained')) %>%
   arrange((date_approved))
 ```  
+
+```{r}
+west_virginia_ppp %>% filter(jobs_retained == 500) %>% arrange(date_approved) 
+```

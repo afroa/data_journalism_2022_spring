@@ -137,8 +137,6 @@ For a single variable, you can use FILTER:
 maryland_ppp %>%
   # filter() filters data by a single column identifier
   filter(servicing_lender_state == 'MD')
-
-
 ```
 ###Here is a more in-depth description of using filter:
 
@@ -150,6 +148,26 @@ Filter is a tidyverse verb that uses criteria you supply to return a subset of t
 
 Where COLUMN_NAME is any column name from your dataframe, OPERATOR is some comparison operator like == or > or < and CRITERIA is something to compare the values in COLUMN_NAME to.
 
+
+###This is from Lab 02, where we had to find which companies had the max jobs retained of 500, and then arrange by which loan recipient had their loan approved the earliest:
+
+```{r}
+west_virginia_ppp %>% filter(jobs_retained == 500) %>% arrange(date_approved) 
+```
+
+###This is also from Lab 02, and in answer to the question: Some of the loans appear not to have been paid out - there is a column representing the amount of money that hasn't been disbursed to the applicant. Which servicing lenders have the most loans with undisbursed amounts greater than 0?
+
+###The best way to do this is to first filter out the unecessary data by using filter, which eliminates any undisbursed loans less than 0. The code the groups the data by the servicing lender, the servicing lender state. Then it counts the loans and arranges them from largest to smallest.
+
+```{r}
+west_virginia_ppp %>%
+  filter(undisbursed_amount > 0) %>%
+  group_by(servicing_lender_name, servicing_lender_state) %>%
+  summarise(
+    total_loans = n()
+  ) %>%
+  arrange(desc(total_loans))
+```
 -----------------------
 ### Task 9: Create a new column using case_when, for more multi-layered data grouping needs
 One common use of mutate is to create a new column and then populate it based on values in an existing column. For example, if we wanted to put the values in `jobs_retained` into broader categories in a new column called `jobs_retained_category` and we have multiple categories. We can use a function called `case_when` to make that easier.
@@ -179,6 +197,28 @@ There's a lot going on here, so let's unpack it. It starts out as a typical muta
 # FYI: The below code allows you to summarize the data above by grouping the data by job-retained ranges, and show how many entities retained jobs in those ranges.
 maryland_jobs_categories %>% group_by(jobs_retained_category) %>% summarise(count = n())
 
+###USE FILTER TO FIND <NA> VALUES:
+
+```{r}
+ppp_maryland_loans %>%
+  group_by(forgiveness_date) %>%
+  summarise(
+    count=n()
+  ) %>%
+  filter(is.na(forgiveness_date)) %>%
+  arrange(desc(count))
+```
+
+###USE FILTER TO FIND VALUES THAT ARE *NOT <NA>:
+```{r}
+ppp_maryland_loans %>%
+  group_by(forgiveness_date) %>%
+  summarise(
+    count=n()
+  ) %>%
+  filter(is.na(forgiveness_date)) %>%
+  arrange(desc(count))
+```
 
 ----------
 
@@ -193,4 +233,17 @@ maryland_ppp %>%
   group_by(Month) %>%
   summarise(total = n()) %>%
   arrange(desc(total))
+```
+
+###LOOK FOR DATE GAPS IN DATA:
+##This code creates a new column (month_year_approved), which is where the floor_date of the (date_approved_"month") column will go. The code extracts the monthly loan numbers, groups them by the month and year approved, counts them, then arranges them in ascending order by month_year_approved).
+
+```{r}
+ppp_maryland_loans %>%
+  mutate(month_year_approved = floor_date(date_approved, "month")) %>%
+  group_by(month_year_approved) %>%
+   summarise(
+    count=n()
+  ) %>%
+  arrange(month_year_approved)
 ```
