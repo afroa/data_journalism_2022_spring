@@ -247,3 +247,94 @@ ppp_maryland_loans %>%
   ) %>%
   arrange(month_year_approved)
 ```
+---------------------------
+###CLEANING DATA
+
+##Use GLIMPSE so get an overview of the data:
+```{r}
+glimpse(arnold_md_loans)
+```
+
+###Eliminate DUPLICATES:
+
+Check for duplicates first:
+```{r}
+cleaned_arnold_md_loans %>%
+  get_dupes()
+```
+
+Then get rid of them:
+```{r}
+# cleaning function
+cleaned_arnold_md_loans <- arnold_md_loans %>%
+  clean_names() %>%
+  rename(id = x1_id) %>%
+  mutate(amount = as.numeric(amount)) %>%
+  distinct()
+
+
+# display the cleaned dataset
+cleaned_arnold_md_loans
+
+```
+
+###Clean up ZIP CODES:
+
+```{r}
+# cleaning function
+cleaned_arnold_md_loans <- arnold_md_loans %>%
+  clean_names() %>%
+  rename(id = x1_id) %>%
+  mutate(amount = as.numeric(amount)) %>%
+  distinct() %>%
+  
+  #This takes the zip and makes if 5 digits, because of the (str_sub) function: "Take what's in the Zip column, start with 1st character from Left (1L) and end with the 5th character from the Left(5L)
+  mutate(zip = str_sub(zip, start=1L, end=5L))
+
+
+# display the cleaned dataset
+cleaned_arnold_md_loans
+
+```
+
+-----
+###FULL DEEP-DIVE INTO DATA CLEANING###
+This incorporates all of the data cleaning functions from <pre_lab_03>
+
+```{r}
+# cleaning function
+cleaned_arnold_md_loans <- arnold_md_loans %>%
+  clean_names() %>%
+  
+  #Change the <id> column header to "x1_id"
+  rename(id = x1_id) %>%
+  
+  #Change the <amount> column from <chr> to <dbl>
+  mutate(amount = as.numeric(amount)) %>%
+  
+  #
+  distinct() %>%
+  
+  #In a new column, standardize Zipcodes so they are only 5 digits
+  mutate(zip = str_sub(zip, start=1L, end=5L)) %>%
+  
+  #Standardizes a column to one case. In this case, it's changing the "city" column to "title" case.
+  mutate(city = str_to_title(city)) %>%
+  
+  #clean up the city column to make them all consistently spelled.
+  mutate(city = case_when(
+    #If the city is "Anold," change it to "Arnold"
+    city == "Anold" ~ "Arnold",
+    
+    #When "city" column begins with ("^") <^Arnl>, then also fix it and change it to "Arnold."
+    str_detect(city,"^Arnl") ~ "Arnold",
+    
+    #If it's anything else, in every other case, keep the value of city as it is. If you want to specify individual cases, this is what you do inside case_when(). For those you don't have to fix, use TRUE to leave them as they are
+    TRUE ~ city
+  ))
+
+
+# display the cleaned dataset
+cleaned_arnold_md_loans
+
+```
