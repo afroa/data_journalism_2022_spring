@@ -118,7 +118,7 @@ Q2: Find the 5-digit ZIP code in West Virginia that had the highest total amount
 
 A2:
 
-The WV Zipcode with the highest total amount of loans is 25301, which is in Charleston (with a whopping sum of ($160,721,320.88). Within that Zipcode, the business with the largest loan is "THE EYE AND EAR CLINIC OF CHARLESTON DBA CHARLESTON SURGICA," which received $1,520,007.00. Of that loan, $1,538,254.68 (or 101%) was forgiven. Since there was interest on these loans which accrued, that explains why the forgiverness amount was more than the loan amount.
+The WV Zipcode with the highest total amount of loans is 25301, which is in Charleston (with a whopping sum of ($160,721,320.88). Within that Zipcode, the business with the largest loan is "THE EYE AND EAR CLINIC OF CHARLESTON DBA CHARLESTON SURGICA," which received $1,520,007.00. Of that loan, $1,538,254.68 (or 101%) was forgiven. Since there was interest on these loans which accrued, that explains why the forgiveness amount was more than the loan amount.
 
 ```{r}
 # Hint
