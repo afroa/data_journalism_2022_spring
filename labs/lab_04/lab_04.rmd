@@ -156,7 +156,10 @@ maryland_ppp_with_naics_and_demographics %>%
 ```
 
 **Q4** Which Maryland zip code had the largest sum of loans where the reported race of the applicant was "Asian", and what is the percentage of non-Hispanic Asian population in that zip code? Also show the number (count) of loans.
-**A4** [write your answer here]
+**A4**
+Top zipcode: 20850
+Count of loans: 239	
+Total loans amount: $28,983,478.00	
 
 ```{r}
 # Write the code to produce your answer here
@@ -170,22 +173,38 @@ maryland_ppp_with_naics_and_demographics %>%
     arrange(desc(total_loans_amount))
 ```
 
-**Q5** What might explain why 20850 has a significant Asian population (23.5%) and only 240 of the 3,186 loans (7.5%) are to Asian applicants?
-**A5** [write your answer here]
+**Q5** What might explain why 20850 has a significant Asian population (23.5%) and only 240 of the 3,186 loans (7.5%) are to Asian applicants? 
+
+**A5**
+One possible explanation is that the applicants did not self-report (especially in the first draw), which would create a big gulf in the data to begin with. 
 
 
 **Q6** Check to see if any Maryland zip codes that have loans where the PPP data lists the applicant as being Asian BUT are located in a zip code that does not appear to have Asian population according to the ZCTA data. How many loans do they have and what is the total amount? Take a look at these zip codes - what could explain this?
-**A6** [write your answer here]
+**A6** 
+The zipcodes are 20701 (Annapolis Junction, MD — 4 loans, $75170.5), 21240 (Millersville, MD—3 loans, $358674.0	), and 21031 (Hunt Valley, MD —6 loans $6819563.0). The one thing I can think of is that the loan borrowers didn't self-report, or the lenders didn't keep track of the information.
 
 ```{r}
 # Write the code to produce your answer here
-
+maryland_ppp_with_naics_and_demographics %>%
+  filter(race == "Asian") %>%
+  filter(PNHA == 0) %>% 
+  group_by(zip5, PNHA) %>%
+  summarize(
+    count = n(),
+    total_loans_amount = sum(amount)) %>% 
+    arrange((total_loans_amount))
 ```
 
 **Q7** How many industries have exactly one loan in the data (hint: you can filter _after_ using `summarise` on any totals you create). From a newsworthiness standpoint, which of these is most worthy of further exploration, and why?
-**A7** [write your answer here]
-
+**A7** 
+There are several, but I'd be interested to know why a business in the "Monetary Authorities-Central Bank" industry needed a loan. There are also others that seem unlikely loan-seekers, like businesses in the "Nuclear Electric Power Generation," "Small Arms Ammunition Manufacturing," "Guided Missile and Space Vehicle Manufacturing," "Industrial Gas Manufacturing," "Industrial Process Furnace and Oven Manufacturing," and "Ammunition (except Small Arms) Manufacturing." 
+  
 ```{r}
 # Write the code to produce your answer here
-
+maryland_ppp_with_naics_and_demographics %>%
+  group_by(title) %>% 
+    summarize(
+      count = n()) %>% 
+  filter(count == 1)
+  
 ```
