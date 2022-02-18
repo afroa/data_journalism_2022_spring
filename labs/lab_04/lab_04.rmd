@@ -160,6 +160,7 @@ maryland_ppp_with_naics_and_demographics %>%
 Top zipcode: 20850
 Count of loans: 239	
 Total loans amount: $28,983,478.00	
+PNAH: 23.5%
 
 ```{r}
 # Write the code to produce your answer here
