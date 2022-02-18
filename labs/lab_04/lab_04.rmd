@@ -140,12 +140,12 @@ Top zipcode: 20850
 Count of loans: 3152	
 Total loans amount: $473,471,466.53	
 ```{r}
-# Second, I need to filter the data to be (NHA >= 20)
+# Second, I need to filter the data to be (PNHA >= 20)
 # Third, I need to group by zipcode
 # Fourth, I need to find the sum of the PPP loans for each zipcode and display the number of loans 
 # Fifth, I need to arrange the data in descending order
 maryland_ppp_with_naics_and_demographics %>%
-  filter(NHA >= 20) %>%
+  filter(PNHA >= 20) %>%
   group_by(zip5) %>%
   summarize(
     count = n(),
@@ -162,14 +162,12 @@ maryland_ppp_with_naics_and_demographics %>%
 # Write the code to produce your answer here
 #Which Maryland zip code had the largest sum of loans where the reported race of the applicant was "Asian",
 maryland_ppp_with_naics_and_demographics %>%
-  filter(NHA|PNHA) %>%
-  group_by(zip5) %>%
+  filter(race == "Asian") %>%
+  group_by(zip5, PNHA) %>%
   summarize(
     count = n(),
     total_loans_amount = sum(amount)) %>% 
     arrange(desc(total_loans_amount))
-
-
 ```
 
 **Q5** What might explain why 20850 has a significant Asian population (23.5%) and only 240 of the 3,186 loans (7.5%) are to Asian applicants?
