@@ -135,3 +135,38 @@ states_and_urls
 ```
 
 
+
+```{r}
+all_states_url <- "https://dwillis.github.io/jour472files/ppp_scraping_example/index.html"
+
+all_states_table <- all_states_url %>% 
+  read_html() %>% 
+  html_table()
+
+all_states_table_dataf <- all_states_table[[1]]
+
+# Create an empty dataframe to hold results
+ppp_by_state_all <- tibble()
+
+# For loop, iterating over each row in our naics industry dataframe
+for(row_number in 1:nrow(all_states_table_dataf)) {
+
+    # Keep only the row for a given row number, get rid of every other row
+    each_row_df <- all_states_table_dataf %>%
+      slice(row_number)
+
+    # Define url of page to get
+    url <- each_row_df$url
+ 
+    each_state <- url%>%
+      read_html() %>%
+      html_table()
+
+    # Bind each individual employment info table to our employment_by_sector_all dataframe
+    each_state_dataframe <-  each_state[[1]] %>%
+      ppp_by_state_all <- ppp_by_state_all %>% 
+        bind_rows(each_state_dataframe)
+}
+```
+
+
