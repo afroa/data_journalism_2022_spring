@@ -118,54 +118,38 @@ You'll need to loop over the individual state urls, scrape each individual page 
 ##Don't forget to calculation the loans per 100,000.##
 
 A7.
-
-##Combine the URLs into the table
-```{r}
-# Define url of page we want to scrape
-
-ppp_by_state_url <- "https://dwillis.github.io/jour472files/ppp_scraping_example/index.html"
-
-# Read in all html from table, store all tables on page as nested list of dataframes.
-states_and_urls <- ppp_by_state_url%>%
-  read_html() %>%
-  html_table()
-
-# show the dataframe
-states_and_urls
-```
-
+South Dakota!!!!
 
 
 ```{r}
 all_states_url <- "https://dwillis.github.io/jour472files/ppp_scraping_example/index.html"
-
 all_states_table <- all_states_url %>% 
   read_html() %>% 
   html_table()
-
 all_states_table_dataf <- all_states_table[[1]]
-
 # Create an empty dataframe to hold results
 ppp_by_state_all <- tibble()
-
 # For loop, iterating over each row in our naics industry dataframe
 for(row_number in 1:nrow(all_states_table_dataf)) {
-
     # Keep only the row for a given row number, get rid of every other row
-    each_row_df <- all_states_table_dataf %>%
+   each_row_df <- all_states_table_dataf %>%
       slice(row_number)
-
     # Define url of page to get
     url <- each_row_df$url
  
     each_state <- url%>%
       read_html() %>%
       html_table()
-
     # Bind each individual employment info table to our employment_by_sector_all dataframe
-    each_state_dataframe <-  each_state[[1]] %>%
+    #each_state_dataframe <-  each_state[[1]] %>%
       ppp_by_state_all <- ppp_by_state_all %>% 
-        bind_rows(each_state_dataframe)
+        bind_rows(each_state) %>% 
+        mutate(
+          loans_per_hundredk = (total_ppp_loans/population)*100000) %>% 
+        arrange(desc(loans_per_hundredk))
+        
+      
+     ppp_by_state_all 
 }
 ```
 
