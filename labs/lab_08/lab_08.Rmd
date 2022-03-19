@@ -114,8 +114,6 @@ md_kid_spanish_population_county %>%
   mutate(percentage = ((spanish_speakers/total_kids)*100)) %>%
   select(NAME, spanish_speakers, total_kids, percentage) %>% 
   arrange(desc(percentage))
-
-
 ```
 **Q4** Given the counties with the largest percentage of 5-17 year-olds that speak Spanish at home, what stands out to you about the data? How would you describe the top 5 counties? How would you describe Garrett County's numbers?
 **A4**
@@ -140,23 +138,37 @@ Black_pop_zip <- get_acs(geography="zcta", variables = "B02001_003") %>%
 ```
 
 ```{r}
-total_pop_zip <- get_acs(geography="zcta", variables = "B02001_001")
+total_pop_zip <- get_acs(geography="zcta", variables = "B02001_001") %>% 
   rename(total_pop_zip=estimate)
 ```
 
+
 ```{r}
-zip_combined <- Black_pop_zip  %>%
-  inner_join(total_pop_zip, by=c("GEOID", "NAME")) %>%
-  
-  
-  mutate(percentage = ((Black_pop_zip/total_pop_zip)*100)) %>%
-  select(NAME, Black_pop_zip, total_pop, percentage) %>% 
-  arrange(desc(percentage))
-  
-zip_combined 
+zip_combined <- Black_pop_zip %>%
+  inner_join(total_pop_zip, by=c("GEOID", "NAME"))
+zip_combined
+```
+```{r}
+#Load the PPP data
+ppp_data <- ppp_removed_july %>%
+  mutate(zip5 = str_sub(zip, 1, 5))
+
+top_zips <- ppp_data %>%
+ group_by(zip5) %>%
+ summarise(total=sum(amount)) %>%
+ arrange(desc(total))
 ```
 
+```{r}
+#Join the PPP data with the population data
+
+md_zipcodes <- get_acs(geography="zcta", variables = "B19013_001", state='MD')
+md_zips_with_acs <- top_zips %>% left_join(md_zipcodes, by=c('zip5'='GEOID'))
+md_zips_with_acs
 ```
+
+
+
 
 **Q6** How would you describe to an editor the top 10 zip codes with the most removed applications in terms of Black population? Where are they located, and what do they have in common? Are there any zip codes that seem different, and if so why?
 **A6**
