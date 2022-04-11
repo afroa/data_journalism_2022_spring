@@ -97,16 +97,57 @@ write_csv(combined_barbershop_percent, "data/combined_barbershop_percent.csv")
 
 **A2.**
 https://datawrapper.dwcdn.net/FTOGv/1/
+This chart adds the percentage of loans which were undisbursed from the total, which helps a reader make what could be an abstract idea into something more understandeable.
 
 **Q3.** The online lender Kabbage, Inc. is featured in the [ProPublica PPP fake farms story](https://www.propublica.org/article/ppp-farms). To show where Kabbage was lending money, make a county-level map that shows the percentage of loans in each county that were Kabbage loans. To do this, make a codeblock and do the following:
 
 1. Load the `kabbage_counties.csv` and `all_counties.csv` files in the data folder.
+```{r}
+kabbage_counties <- read_csv("data/kabbage_counties.csv")
+all_counties <- read_csv("data/all_counties.csv")
+```
 2. Join the two together, specifying the join columns, and rename the total columns to represent Kabbage loans and total loans. Save the output to a new dataframe.
+```{r}
+combined_kabbage <- kabbage_counties %>%
+  inner_join(all_counties, by=c("project_county_name")) %>% 
+    rename(match_county=project_county_name, KabbageTotal=total.x, CountyTotal=total.y) 
+combined_kabbage 
+```
 3. Calculate the percentage of loans in each county that were Kabbage loans and save the output to the existing dataframe.
+```{r}
+combined_kabbage_percent <- combined_kabbage %>% 
+  mutate(Percent=(KabbageTotal/CountyTotal)*100) %>% 
+  arrange(desc(Percent)) 
+combined_kabbage_percent 
+```
 4. Load the `county_fips.csv` file in the data folder into a dataframe.
+```{r}
+county_fips <- read_csv("data/county_fips.csv")
+```
 5. Join the combined counties data with the fips data, again specifying the join columns and saving it to a new dataframe.
+```{r}
+combined_kabbage_fips <- combined_kabbage_percent %>%
+  inner_join(county_fips, by=c("match_county")) 
+combined_kabbage_fips
+```
+```{r}
+combined_kabbage_fips_slim <- combined_kabbage_fips %>% 
+  select(fips_code, KabbageTotal, CountyTotal, Percent)
+combined_kabbage_fips_slim
+
+```
 6. Export the new dataframe to a CSV file.
+```{r}
+write_csv(combined_kabbage_fips_slim, "data/combined_kabbage_fips_slim.csv")
+```
 7. Make a county-level map using that exported CSV file that displays the percentage of Kabbage loans. Style it so that the tooltip displays the county and the percentage, and format all percentages shown on the map so that they appear with one decimal point (such as 3.4%). Follow the same general guidelines as above for the chart's visual elements, and give the map a title, description and source. Provide a legend caption and format the percentage in the same way as on the tooltips.
+
 8. In the answer space below, provide the URL for your published map and then describe where Kabbage loans are and are not found. Where are they more common? Look specifically at Florida in the data: are there counties on the map where no data is displayed? Why?
 
 **A3.**  
+So for some reason, I was unable to make the data stick to this map in DataWrapper. Every time I tried, the data would load and then the map would be empty when I went into the actual "visualize" portion. But from the preview window in the actual data loading page, I could see that most of the Kabbage loans were concentrated in SE Florida, most likely Miami (which seems to have the incorrect FIPS data in this DF). There are no loans in many SW counties, and apparently a pocket of high-density Kabbage loans in one county in southern California.
+
+This is the best I could do:
+```{r, echo=FALSE}
+knitr::include_graphics(rep("images/data_input_ws.png"))
+```
