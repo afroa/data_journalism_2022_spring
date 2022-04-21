@@ -91,6 +91,7 @@ View(county_totals)
 ### Task 5: Examine the NA records
 **Task** Run the following code and describe the tibble it produces. What do you think this data represents?
 **Answer**
+Vaccine doses by day for the NA-counties
 
 There are totals for all of Maryland's jurisdictions, plus one for "Unknown" and one that's NA. All but the last one have roughly the same number of records. What's going on with the NA records?
 
@@ -163,7 +164,7 @@ More than numbers, we are going to want to see this data so we can spot potentia
 ### Task 9: Make a simple bar chart
 **Task** Run the following code and describe what the chart is showing. What is the trend in the data?
 **Answer**
-
+First big surge, then dip with supply issues, then the biggest surge when supply met demand. Gradual falloff as demand decreased
 ```{r fig.width=9}
 ggplot() +
   geom_bar(data=ranked, aes(x=vaccination_date, weight=fully_vaccinated))
@@ -284,7 +285,7 @@ Let's filter out Maryland first and create a line chart:
 ### Task 15: Filter on Maryland and create a line chart
 **Task** Run the following code and describe what the resulting chart shows
 **Answer**
-
+This shows a ginormous spike in cases at the turn of the year in the DC suburbs, as Omicron arrived
 ```{r}
 maryland <- covid %>% filter(state == "Maryland")
 
@@ -296,7 +297,7 @@ The colors can be a little hard to make out, but when you have counties with a l
 ### Task 16: Switch the line chart to use a log scale
 **Task** Run the following code and describe what the resulting chart shows
 **Answer**
-
+This is the lifetime pattern of COVID cases in MD from 2020 to 2022
 ```{r}
 ggplot() + geom_line(data=maryland, aes(x=date, y=cases, group=county, color=county)) + scale_y_continuous(trans="log10")
 ```
@@ -312,7 +313,7 @@ I'm adding one piece to the end to make joining this to a map easier and just re
 ### Task 17: Find the latest data for Maryland and join it to a shapefile of U.S. counties
 **Task** Run the following code. How many rows in the counties dataframe?
 **Answer**
-
+3233 rows
 ```{r}
 current <- maryland %>% summarize(max(date))
 marylandcurrent <- maryland %>% filter(date == current[[1]]) %>% rename(GEOID = fips)
@@ -325,7 +326,7 @@ Since we have every county in the United States in our counties map layer, we ca
 ### Task 18: Filter our data to just Maryland
 **Task** Run the following code. How many rows in the mdcounties dataframe?
 **Answer**
-
+24 rows
 ```{r}
 mdcounties <- counties %>% filter(STATEFP == 24)
 ```
@@ -335,7 +336,7 @@ So now, we have a geographic dataframe that has both the county shapes and the n
 ### Task 19: Make a map
 **Task** Run the following code and describe what the map is showing.
 **Answer**
-
+This is the geographic concentration of cases in MD in a cloropleth map
 ```{r}
 ggplot() +
   geom_sf(data=mdcounties, aes(fill=cases)) +
