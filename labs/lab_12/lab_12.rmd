@@ -67,13 +67,13 @@ wv_police_incidents_by_date
 ***Incidents for the most recent date***
 ```{r}
 wv_police_incidents_most_recent <- wv_police_incidents_by_date %>% 
-  arrange(desc(date)) %>% 
+  arrange(desc(date)) 
 wv_police_incidents_most_recent
 ```
 ***Find the number of incidents *(of that incident)* that occurred in the previous 30 days and write out a sentence using paste. The sentence should include the most recent date, the title of the incident and the number of times that kind of incident has occurred in the previous 30 days***
 ```{r}
 last_event <- wv_police_incidents_most_recent %>%  slice(1)
-last_30_days <- wv_police_incidents_most_recent %>% filter(datetime = last_event$datetime - 30)
+last_30_days <- wv_police_incidents_most_recent %>% filter(date >= last_event$date - 30)
 
 
 
