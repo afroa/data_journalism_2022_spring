@@ -73,10 +73,19 @@ wv_police_incidents_most_recent
 ***Find the number of incidents *(of that incident)* that occurred in the previous 30 days and write out a sentence using paste. The sentence should include the most recent date, the title of the incident and the number of times that kind of incident has occurred in the previous 30 days***
 ```{r}
 last_event <- wv_police_incidents_most_recent %>%  slice(1)
-last_30_days <- wv_police_incidents_most_recent %>% filter(date >= last_event$date - 30)
+last_30_days <- wv_police_incidents_most_recent %>% 
+filter(date >= last_event$date - 30) %>% 
+filter(title == last_event$title)
 
+last_30_days_count <- last_30_days %>% 
+  summarize(count = n())
+last_30_days_count
+```
 
-
+```{r}
+sub <- paste("The most recent", last_event$title, "occured on", format(last_event$date), "and has occurred", last_30_days_count, "times in the last 30 days.")
+sub
+```
 ```
 
 **Q2.** Maryland produces a [CSV file](https://raw.githubusercontent.com/state-of-maryland/VaccineCSVs/master/Vax_ZIP_CODE_FirstSecondSingle_Totals_Raw.csv) showing the total number of vaccinations by zip code and -- interestingly -- it includes non-Maryland zip codes (as well as some zip codes that seem to be bad data). write a script that reads the CSV file, making the columns more readable and adding today's date. Then output the top 25 Maryland zip codes and top 25 non-Maryland zip codes based on number of people fully vaccinated, and write both dataframes out to CSV files, using the following name formats:
