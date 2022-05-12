@@ -78,7 +78,7 @@ What county received the most loans? What county received the highest sum of loa
 
 **Most loans went to Providence county (19408), which also received the largest sum amount of loans ($1,730,824,186)**
 ```{r}
-clean_ri_ppp_loans %>% 
+ri_ppp_by_county <- clean_ri_ppp_loans %>% 
   group_by(project_county_name) %>% 
     summarise(
       count=n(),
@@ -153,13 +153,48 @@ county_pop <- ri_population %>%
 ```
 
 ```{r}
-ppp_by_county <- clean_ri_ppp_loans %>%
+ppp_by_county <- ri_ppp_by_county  %>%
   left_join(county_pop, by=c("project_county_name")) %>% 
-  select(project_county_name, estimate, amount) 
-  
+  mutate(per_capita_county = total_loans_county/estimate)
 ppp_by_county
 ```
+**Calculate the per capita figures per zip code
+```{r}
+ri_ppp_zip <- clean_ri_ppp_loans %>% 
+  mutate(zip = str_sub(zip, start=1L, end=5L)) %>%
+  group_by(zip) %>% 
+    summarise(
+      count=n(),
+      total_loans_county=sum(amount)) %>% 
+arrange(desc(total_loans_county))
+ri_ppp_zip
+  
+```
 
+```{r}
+ri_ppp_by_zip <- clean_ri_ppp_loans %>% 
+  mutate(zip = str_sub(zip, start=1L, end=5L)) %>%
+  group_by(zip) %>% 
+    summarise(
+      count=n(),
+      total_loans_zip=sum(amount)) %>% 
+arrange(desc(total_loans_zip))
+ri_ppp_by_zip
+```
+
+```{r}
+ri_zip_population <- get_acs(geography = "zcta", variables = c(totalpopulation = "B02001_001"), year = 2019) %>% 
+rename(zip = GEOID) 
+ri_zip_population
+```
+
+```{r}
+zip_per_capita <- ri_ppp_by_zip  %>%
+  left_join(ri_zip_population, by=c("zip")) %>% 
+  mutate(per_capita_zip = total_loans_zip/estimate) %>% 
+  select(zip, total_loans_zip, estimate, per_capita_zip) %>% 
+  arrange(desc(per_capita_zip))
+zip_per_capita
 ```
 
 ## Lender Analysis
