@@ -47,7 +47,7 @@ clean_ri_ppp_loans <- read_csv("DATA/clean_cities_rhode_island_ppp.csv")
 ##Overall, a total of 33,807 loans were disbursed to RI recipients, totaling $2,878,028,767. April of 2020 saw the most loans approved (12078), while August of 2020 saw the fewest (290). Most loans went to Providence county (19408), which also received the largest sum amount of loans ($1,730,824,186). On a city-by-city basis, Providence received the most (6,372), followed by Cranston (2,959) and Warwick (2758). COASTAL MEDICAL, INC. — a hospital system with locations around RI — received the most money ($,9048,600) and retained 500 jobs, but their demographic ownership data is unavailable. It is notable that none of the top-ten PPP-receiving companies in RI self-reported as being minority or female owned.
 
 ----------
-##Q1: 
+##Q1.1: 
 How many PPP loans were disbursed to RI recipients? What was the sum total disbursed?
 
 **A total of 33,807 loans were disbursed to RI recipients, totaling $2,878,028,767.**
@@ -61,7 +61,7 @@ clean_ri_ppp_loans %>%
   )
 
 ```
-##Q2: 
+##Q1.2: 
 What cities received the most PPP loans?
 
 **Providence received the most (6,372), followed by Cranston (2,959) and Warwick (2758).**
@@ -73,7 +73,7 @@ clean_ri_ppp_loans %>%
   arrange(desc(count))
 ```
 
-##Q3: 
+##Q1.3: 
 What county received the most loans? What county received the highest sum of loans?
 
 **Most loans went to Providence county (19408), which also received the largest sum amount of loans ($1,730,824,186)**
@@ -86,8 +86,10 @@ ri_ppp_by_county <- clean_ri_ppp_loans %>%
 arrange(desc(total_loans_county))
 ```
 
-##What month saw the most loans approved during the duration of the program? What month saw the fewest?
-April of 2020 saw the most loans approved (12078), while August of 2020 saw the fewest (290).
+##Q1.4:
+What month saw the most loans approved during the duration of the program? What month saw the fewest?
+
+**April of 2020 saw the most loans approved (12078), while August of 2020 saw the fewest (290).**
 
 ```{r}
 clean_ri_ppp_loans %>%
@@ -98,7 +100,7 @@ clean_ri_ppp_loans %>%
 
 ```
 
-##Q5:
+##Q1.5:
 What companies received the greatest loan amounts? What are their demographics? How many jobs did they retain?
 **COASTAL MEDICAL, INC. received the most money ($,9048,600) and retained 500 jobs, but their demographic ownership data is unavailable. It is notable that none of the top-ten PPP-receiving companies in RI self-reported as being minority or female owned.**
 
@@ -158,7 +160,34 @@ ppp_by_county <- ri_ppp_by_county  %>%
   mutate(per_capita_county = total_loans_county/estimate)
 ppp_by_county
 ```
+
+**Make a map showing the per-capita figures by county**
+```{r}
+counties <- counties() 
+glimpse(counties)
+```
+
+```{r}
+ri_counties <- counties %>%
+  filter(STATEFP == "44")
+ri_counties
+```
+
+```{r}
+ri_counties %>%
+  ggplot() + 
+  geom_sf() + 
+  theme_minimal()
+```
+
+
+
+
+
+
+---
 **Calculate the per capita figures per zip code
+
 ```{r}
 ri_ppp_zip <- clean_ri_ppp_loans %>% 
   mutate(zip = str_sub(zip, start=1L, end=5L)) %>%
@@ -183,7 +212,8 @@ ri_ppp_by_zip
 ```
 
 ```{r}
-ri_zip_population <- get_acs(geography = "zcta", variables = c(totalpopulation = "B02001_001"), year = 2019) %>% 
+ri_zip_population <- get_acs(geography = "zcta", variables = c(totalpopulation = "B02001_001"), year = 2019, state = "RI",
+              geometry = TRUE) %>% 
 rename(zip = GEOID) 
 ri_zip_population
 ```
@@ -192,11 +222,20 @@ ri_zip_population
 zip_per_capita <- ri_ppp_by_zip  %>%
   left_join(ri_zip_population, by=c("zip")) %>% 
   mutate(per_capita_zip = total_loans_zip/estimate) %>% 
-  select(zip, total_loans_zip, estimate, per_capita_zip) %>% 
+  select(zip, total_loans_zip, estimate, per_capita_zip, geometry) %>% 
   arrange(desc(per_capita_zip))
 zip_per_capita
 ```
 
+##Join the zip_per_capita with geo data
+
+```{r}
+ggplot(ri_counties) + 
+  geom_sf(data=zip_per_capita, aes(fill=zip_per_capita)) + 
+  theme_minimal()
+
+
+```
 ## Lender Analysis
 
 **Q3.** Write R code to examine which lenders had the most approved applications in your state (and include summary statistics such as total amount and average loan amount). Generate dataframes that show the number and total amount of all loans and undisbursed loans per lender. For those lenders who had any undisbursed loans, make a graphic showing the relationship between the total amount of loans and the total undisbursed amount. Describe the most noticeable outlier lenders on that graphic below.
