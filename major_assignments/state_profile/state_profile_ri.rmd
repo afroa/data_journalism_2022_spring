@@ -219,10 +219,10 @@ ri_zip_population
 ```
 
 ```{r}
-zip_per_capita <- ri_ppp_by_zip  %>%
-  left_join(ri_zip_population, by=c("zip")) %>% 
+zip_per_capita <- ri_zip_population  %>%
+  left_join(ri_ppp_by_zip, by=c("zip")) %>% 
   mutate(per_capita_zip = total_loans_zip/estimate) %>% 
-  select(zip, total_loans_zip, estimate, per_capita_zip, geometry) %>% 
+
   arrange(desc(per_capita_zip))
 zip_per_capita
 ```
@@ -230,8 +230,8 @@ zip_per_capita
 ##Join the zip_per_capita with geo data
 
 ```{r}
-ggplot(ri_counties) + 
-  geom_sf(data=zip_per_capita, aes(fill=zip_per_capita)) + 
+ggplot() + 
+  geom_sf(data=ri_counties, aes(fill=ri_counties)) + 
   theme_minimal()
 
 
@@ -241,7 +241,73 @@ ggplot(ri_counties) +
 **Q3.** Write R code to examine which lenders had the most approved applications in your state (and include summary statistics such as total amount and average loan amount). Generate dataframes that show the number and total amount of all loans and undisbursed loans per lender. For those lenders who had any undisbursed loans, make a graphic showing the relationship between the total amount of loans and the total undisbursed amount. Describe the most noticeable outlier lenders on that graphic below.
 
 **A3.** 
+Rhode Island did not have any undisbursed loans, so I made a couple of graphics to see what I noticed. Here are the top 5 lenders by total loaned (https://datawrapper.dwcdn.net/xeNEe/1/), and the bottom five (https://datawrapper.dwcdn.net/TeXzN/1/). The results are not really surprising, with the major RI accounting for the greatest sum of loans disbursed. Although I did find it interesting that the Bank of Rhode Island's average loan amount is far higher than the Citizen's Bank average — and the data shows that it did so by loaning to fewer applicants. 
 
+```{r, echo=FALSE}
+knitr::include_graphics(rep("images/TopFive.png"))
+```
+```{r, echo=FALSE}
+knitr::include_graphics(rep("images/BottomFive.png"))
+```
+
+**Average amount
+```{r}
+lender_amounts <- clean_ri_ppp_loans %>%
+  group_by(lender) %>%
+  summarise(
+    count_loans = n(),
+    sum_loans_approved = sum(amount),
+    mean_loan_amount = mean(amount),
+    median_loan_amount = median(amount)
+  ) %>%
+  arrange(desc(mean_loan_amount))
+
+```
+
+```{r}
+lender_undisbursed <- clean_ri_ppp_loans %>% 
+  filter(undisbursed_amount > 0) %>% 
+  group_by(lender, undisbursed_amount) %>% 
+  summarise(
+    count_undisbursed = n(),
+    sum_loans_undisbursed = sum(amount)) %>% 
+  arrange(desc(count_undisbursed))
+
+```
+
+```{r}
+lender_stats_combined <- lender_amounts %>% 
+  left_join(lender_undisbursed, by=c("lender")) %>% 
+  arrange(desc(sum_loans_approved))
+
+
+```
+
+```{r}
+top_five_graph_lender_stats <- lender_stats_combined %>% 
+  select(lender, count_loans, mean_loan_amount, sum_loans_approved) %>% 
+  arrange(desc(sum_loans_approved)) %>% 
+  slice(1:5)
+```
+
+
+```{r}
+bottom_five_graph_lender_stats <- lender_stats_combined %>% 
+  select(lender, count_loans, mean_loan_amount, sum_loans_approved) %>% 
+  arrange((sum_loans_approved)) %>% 
+  slice(1:5)
+```
+
+
+```{r}
+write_csv(bottom_five_graph_lender_stats,"bottom_five_graph_lender_stats.csv")
+```
+
+
+```{r}
+write_csv(top_five_graph_lender_stats,"top_five_graph_lender_stats.csv")
+
+```
 
 ## Industry Analysis
 
