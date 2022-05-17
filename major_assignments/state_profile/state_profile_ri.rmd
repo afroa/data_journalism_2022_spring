@@ -117,6 +117,8 @@ ri_ppp_company_info
 **Q2.** Write R code that examines geographic patterns for PPP loans in your state, using Census population information to calculate a per-capita figure for the state and counties and zip codes. Then, make a county map using ggplot showing the per-capita data *and* a zip code map showing the difference from the statewide per-capita figure. Describe the most interesting or newsworthy findings based on your exploration.
 
 **A2.** 
+Though I wasn't able to get the county-level per-capita to work, I think the high per-capita level in Providence is noteworthy. Of course, as the capital of the state, it isn't necessarily surprising. But as someone who may not understand the geography and economic breakdown of a small state like RI, it's helpful to know.
+
 
 ----------
 **Q1: Calculate the per-capita figure for the state, counties and zip codes
@@ -150,13 +152,18 @@ county_pop <- ri_population %>%
    county == "PROVIDENCE COUNTY, RHODE ISLAND" ~ "PROVIDENCE",
    county == "KENT COUNTY, RHODE ISLAND" ~ "KENT",
    county == "BRISTOL COUNTY, RHODE ISLAND" ~ "BRISTOL")) %>% 
-  rename(project_county_name = county) %>% 
-  select(project_county_name, estimate, GEOID, geometry)
+  rename(project_county_name = county) 
 ```
 
 ```{r}
 ppp_by_county <- ri_ppp_by_county  %>%
-  left_join(county_pop, by=c("project_county_name")) %>% 
+  left_join(county_pop, by=c("project_county_name")) %>%
+  mutate(county = case_when(
+   county == "WASHINGTON COUNTY, RHODE ISLAND" ~ "Washington",
+   county == "NEWPORT COUNTY, RHODE ISLAND" ~ "Newport",
+   county == "PROVIDENCE COUNTY, RHODE ISLAND" ~ "Proivdence",
+   county == "KENT COUNTY, RHODE ISLAND" ~ "Kent",
+   county == "BRISTOL COUNTY, RHODE ISLAND" ~ "Bristol")) %>% 
   mutate(per_capita_county = total_loans_county/estimate)
 ppp_by_county
 ```
@@ -169,14 +176,13 @@ glimpse(counties)
 
 ```{r}
 ri_counties <- counties %>%
-  filter(STATEFP == "44")
+  filter(STATEFP == "44") %>% 
 ri_counties
 ```
 
 ```{r}
-ri_counties %>%
-  ggplot() + 
-  geom_sf() + 
+ggplot() + 
+  geom_sf(data=ppp_by_county, aes(fill=per_capita_county)) + 
   theme_minimal()
 ```
 
@@ -231,10 +237,8 @@ zip_per_capita
 
 ```{r}
 ggplot() + 
-  geom_sf(data=ri_counties, aes(fill=ri_counties)) + 
+  geom_sf(data=zip_per_capita, aes(fill=per_capita_zip)) + 
   theme_minimal()
-
-
 ```
 ## Lender Analysis
 
@@ -311,7 +315,11 @@ write_csv(top_five_graph_lender_stats,"top_five_graph_lender_stats.csv")
 
 ## Industry Analysis
 
-**Q4.** Write R code that examines industry patterns for PPP loans in your state, using the NAICS codes from the PPP data as a starting point. Generate statewide and county industry totals, then join that with 2018-19 data from the [Census County Business Patterns survey](https://www2.census.gov/programs-surveys/cbp/datasets/2019/cbp19co.zip) using 6-digit NAICS codes. The documentation explaining that data can be found here: https://www2.census.gov/programs-surveys/cbp/technical-documentation/records-layouts/2018_record_layouts/county-layout-2018.txt. To do this, you will need to add FIPS codes to your PPP dataset.
+**Q4.** Write R code that examines industry patterns for PPP loans in your state, using the NAICS codes from the PPP data as a starting point. 
+
+Generate statewide and county industry totals, then join that with 2018-19 data from the [Census County Business Patterns survey](https://www2.census.gov/programs-surveys/cbp/datasets/2019/cbp19co.zip) using 6-digit NAICS codes. The documentation explaining that data can be found here: https://www2.census.gov/programs-surveys/cbp/technical-documentation/records-layouts/2018_record_layouts/county-layout-2018.txt. 
+
+To do this, you will need to add FIPS codes to your PPP dataset.
 
 Does the distribution of PPP applications by the top 10 industries (by number of applications) roughly match the number of businesses reported in the Census data? Does it roughly match if you remove self-employed individuals and sole proprietorships from the PPP totals? Write up a summary of what you've found and whether there are potentially newsworthy patterns in the data.
 
@@ -319,8 +327,42 @@ Create a county-level map showing the differences between the PPP applications a
 
 **A4.** 
 
+**Load NAICS
+```{r}
+naics <- read_csv("DATA/naics_codes.csv")
+ri_ppp_with_naics <- clean_ri_ppp_loans %>% left_join(naics_codes, by=c("naics_code")) 
+```
+
+
+**Statewide PPP with NAICS
+```{r}
+ri_state_naics <- ri_ppp_with_naics %>% 
+  group_by(naics_code) %>% 
+  summarize(
+    count_state_naics = n(),
+    total_state_amount = sum(amount)
+  )%>%
+arrange(desc(count_state_naics))
+
+```
+
+**County PPP with NAICS
+```{r}
+ri_county_naics <- clean_ri_ppp_loans %>% 
+  group_by(project_county_name, naics_code) %>% 
+  summarise(
+    count_county_naics = n(),
+    total_county_amount = sum(amount)
+  )
+  
+
+```
+
 ## Summary
 
 **Q5.** What is the most promising story idea that you have found during this exploration? How would you approach reporting it out and what other information/data would you need to do that? What would be the minimum story you could get from this, and what would be the maximum story?
 
 **A5.**
+I think the most important story idea that I took away from this almost-complete exploration of RI is the demographic breakdown of the PPP loans and how it compares to the actual breakdown in the state. Diversity is not the first thing that comes to mind when I think of that state, and certainly the fact that the top ten companies don't seem to be owned by any minority or women owners is a deal. That, I think, is the max story idea, and would require a more in-depth look at those top-50 company owners to confirm the demographics and fill in the blanks. The rest of the reporting would depend on what that reveals, but we would then be able to get a more complete understanding of how the PPP loans shook out when compared to the general demos of the state. Then, we could see how the top businesses are doing now, a year after the program ended, to see if there was a long-term benefit.
+
+The minimum story would be comparing the trends and noting that more male, white-owned businesses got PPP funding than others. Notable story, but not necessarily helpful.
